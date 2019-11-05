@@ -13,9 +13,6 @@ import SceneKit
 class States {
     
     var diverseCases:Int = 0
-    
-    var a = 0
-    
     var isAlive:Bool = false
     var neighborCount = 0
     var arraySquare = [SCNNode]()
@@ -42,7 +39,7 @@ class States {
     
     
     func stateDealer() -> [[Bool]] {
-        print("MATRIZ DO STATE DEALER \n", colunas)
+//        print("MATRIZ DO STATE DEALER \n", colunas)
         for xIndex:Int in 0...10{
             linhas = []
             for zIndex:Int in 0...10{
