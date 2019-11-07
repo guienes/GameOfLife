@@ -14,37 +14,38 @@ class GameViewController: UIViewController {
     
     let scene = SCNScene()
     lazy var sceneView = self.view as! SCNView
-    lazy var arraySquare = [SCNNode]()
+    var arraySquare = [SCNNode]()
+    var arraySquareBlink = [SCNNode]()
     var linhas: [Bool] = []
     var colunas: [[Bool]] = []
     var yheigth: Float = 0.5
-    
-    override var prefersStatusBarHidden: Bool{
-        return true
-    }
-    
-    
-    
+    var timerSet = Timer()
+    let imageSeta = UIImage(named: "seta")
+    let imageStop = UIImage(named: "stop")
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        makeLight()
         createSquare()
-        createButton()
+        playButton()
+        deleteBttn()
+    }
+    
+    func makeLight() {
+        let lightNode = SCNNode()
+        lightNode.light = SCNLight()
+        lightNode.light?.type = .omni
+        lightNode.position = SCNVector3(0, 100, 0)
+        scene.rootNode.addChildNode(lightNode)
+        
+        let ambient = SCNNode()
+        ambient.light = SCNLight()
+        ambient.light?.type = .ambient
+        ambient.light?.color = UIColor.darkGray
+        scene.rootNode.addChildNode(ambient)
     }
     
     func createSquare() {
-        //        let squareGeometry = SCNBox(width: 1, height: 1, length: 1, chamferRadius: 0.1)
-        //        let squareNode = SCNNode(geometry: squareGeometry)
-        //        squareNode.position = SCNVector3(1, 0.5, 1)
-        //
-        //        scene.rootNode.addChildNode(squareNode)
-        
-        
-        
-        
-        
-        // adiciona o chão (GRID)
         
         let geometry = SCNBox(width: 1 , height: 0.1,
                               length: 1, chamferRadius: 0.005)
@@ -64,52 +65,70 @@ class GameViewController: UIViewController {
             }
             colunas.append(linhas)
         }
-
+        
         let cameraNode = SCNNode()
         cameraNode.camera = SCNCamera()
         scene.rootNode.addChildNode(cameraNode)
         
         cameraNode.position = SCNVector3(x: 5, y: 0, z: 50)
         cameraNode.camera?.zFar = 75
-        //        let lookConstraint = SCNLookAtConstraint(target: squareNode)
-        //        cameraNode.constraints = [lookConstraint]
         sceneView.scene = scene
         sceneView.allowsCameraControl = true
         sceneView.backgroundColor = .orange
         
+        //        let lookConstraint = SCNLookAtConstraint(target: squareNode)
+        //        cameraNode.constraints = [lookConstraint]
         
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(touchInMatriz(_:)))
         sceneView.addGestureRecognizer(tapGesture)
         
     }
     
-    //========================== BOTAO PARA DAR PLAY ==================================
-    func createButton() {
+    
+    
+    
+    
+    func playButton() {
+
+
         let viewHeigth = self.view.frame.height
         let viewWidth = self.view.frame.width
         
-        let buttonT = UIButton(frame: CGRect(x: viewWidth/2 - 25, y: viewHeigth/2 + 300, width: 50, height: 50))
+        let buttonT = UIButton(frame: CGRect(x: viewWidth/2 - 120, y: viewHeigth/2 + 300, width: 50, height: 50))
         buttonT.layer.zPosition = 999999
-        buttonT.backgroundColor = .black
-        
-        buttonT.addTarget(self, action: #selector(handleButton(_:)), for: .touchDown)
+        buttonT.setBackgroundImage(imageSeta, for: .normal)
+        buttonT.addTarget(self, action: #selector(startTimer), for: .touchDown)
         sceneView.addSubview(buttonT)
+    }
+    
+    func deleteBttn() {
+        let viewHeigth = self.view.frame.height
+        let viewWidth = self.view.frame.width
+        let buttonDel = UIButton(frame: CGRect(x: viewWidth/2 + 80 , y: viewHeigth/2 + 300, width: 50, height: 50))
+        buttonDel.layer.zPosition = 999999
+        buttonDel.setBackgroundImage(imageStop, for: .normal)
+        buttonDel.addTarget(self, action: #selector(deleteButton(_:)), for: .touchDown)
+        sceneView.addSubview(buttonDel)
+        
         
     }
     
+    @objc func deleteButton(_ gestureRecognize: UIGestureRecognizer){
+        timerSet.invalidate()
+    }
+    
+    @objc func startTimer() {
+        timerSet = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(handleButton(_:)), userInfo: nil, repeats: true)
+    }
+    
     @objc func handleButton(_ gestureRecognize: UIGestureRecognizer){
+        var rand = Int.random(in: 0...arraySquareBlink.count-1)
+
         var statesCell = States.init(array: arraySquare, boolArray: colunas)
         
-//        for i in 0 ..< arraySquare.count{
-//            arraySquare[i].removeFromParentNode()
-//        }
         arraySquare.removeAll()
-//        print("MATRIZ INICIAL \n",colunas)
-        
         colunas = statesCell.stateDealer()
-//        print("MATRIZ MUDADA \n",colunas)
-        //
+        
         yheigth+=1
         for indexX:Int in 0...colunas.count-1{
             for indexZ:Int in 0...linhas.count-1{
@@ -117,28 +136,20 @@ class GameViewController: UIViewController {
                     let square = Cell().createSquare(x: Float(indexX), y: yheigth, z: Float(indexZ))
                     scene.rootNode.addChildNode(square)
                     arraySquare.append(square)
+                    arraySquareBlink.append(square)
                 }
             }
         }
-        
-        
-        
-        
-        //        if arraySquare.isEmpty {
-        //            print("Vai crashar n")
-        //        } else {
-        //            arraySquare.removeLast().removeFromParentNode()
-        //            print(arraySquare)
-        //
-        //        }
+        print(rand)
     }
     
+
+   
     
-    // =============================================================================
-    
-    @objc func handleTap(_ gestureRecognize: UIGestureRecognizer) {
+    @objc func touchInMatriz(_ gestureRecognize: UIGestureRecognizer) {
         // retrieve the SCNView
         let sceneView = self.view as! SCNView
+        
         
         // check what nodes are tapped
         let p = gestureRecognize.location(in: sceneView)
@@ -154,6 +165,7 @@ class GameViewController: UIViewController {
             
             scene.rootNode.addChildNode(square)
             arraySquare.append(square)
+            arraySquareBlink.append(square)
             
             
             
