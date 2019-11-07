@@ -25,13 +25,14 @@ class Cell: SCNNode{
         
         squareNode.position = SCNVector3(x: x, y: y, z: z)
         return squareNode
+        
     }
     
     func makePiscaPiscaAnimation(property: SCNMaterialProperty) {
            let animation = CABasicAnimation(keyPath: "intensity")
            animation.fromValue = 0.0
            animation.toValue = 0.8
-           animation.duration = 4
+           animation.duration = 2
            animation.autoreverses = true
         animation.repeatCount = .infinity
 

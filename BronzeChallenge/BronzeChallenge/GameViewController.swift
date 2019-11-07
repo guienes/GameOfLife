@@ -123,7 +123,7 @@ class GameViewController: UIViewController {
     
     @objc func handleButton(_ gestureRecognize: UIGestureRecognizer){
         var rand = Int.random(in: 0...arraySquareBlink.count-1)
-
+        
         var statesCell = States.init(array: arraySquare, boolArray: colunas)
         
         arraySquare.removeAll()
